@@ -89,6 +89,8 @@ main {
   }
 
   &-main {
+    z-index: 1000;
+
     section[aria-label='Evidence'] .list {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -107,6 +109,7 @@ main {
   &-aside {
     transition: 500ms ease-in-out;
     max-width: 20em;
+    z-index: 999;
 
     .close {
       margin-left: 100%;
@@ -144,4 +147,22 @@ main {
 
 .checked {
   text-decoration: line-through !important;
+}
+
+footer {
+  span, a {
+    color: white;
+  }
+
+  span:first-child {
+    position: fixed;
+    bottom: 5px;
+    left: 5px;
+  }
+
+  span:last-child {
+    position: fixed;
+    bottom: 5px;
+    right: 5px;
+  }
 }
