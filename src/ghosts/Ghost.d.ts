@@ -1,5 +1,3 @@
-import {ReactElement} from "react";
-
 export enum Evidence {
     EMF_LEVEL_5,
     FINGERPRINTS,
@@ -10,11 +8,13 @@ export enum Evidence {
     SPIRIT_BOX
 }
 
+export type GhostDescription = string | { strengths: string | string[], weaknesses: string | string[] };
+
 export type Ghost = {
 
     readonly name: string;
 
-    readonly description: string | ReactElement;
+    readonly description: GhostDescription;
 
     readonly evidence: Evidence[];
 }

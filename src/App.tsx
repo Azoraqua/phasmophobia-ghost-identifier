@@ -1,7 +1,7 @@
 import React, {FC, useEffect, useState} from 'react';
 import './App.scss';
 
-import {Evidence, nameOf} from "./ghosts/Ghost.d";
+import {Evidence, GhostDescription, nameOf} from "./ghosts/Ghost.d";
 import Spirit from "./ghosts/Spirit";
 import Banshee from "./ghosts/Banshee";
 import Demon from "./ghosts/Demon";
@@ -25,7 +25,7 @@ import Yokai from "./ghosts/Yokai";
 import Yurei from "./ghosts/Yurei";
 import {useIdGenerator} from "./util/helper";
 import {Alert} from "@mui/material";
-import {Info as InfoIcon} from "@mui/icons-material";
+import {Close, Info as InfoIcon} from "@mui/icons-material";
 
 const GHOSTS = [
     Banshee,
@@ -86,7 +86,7 @@ function App() {
                             severity={"info"}
                             className={descriptionVisible && 'fade'}
                             onClose={() => setDescriptionVisible(false)}
-                            sx={{ fontSize: '1.125em', userSelect: 'none' }}
+                            sx={{fontSize: '1.125em', userSelect: 'none'}}
                         >
                             {description}
                         </Alert>
@@ -96,78 +96,139 @@ function App() {
         );
     }
 
-    const Ghost: FC<any> = ({name, description, evidence}) => {
-        const id = IdGenerator.next().value;
-        const [descriptionVisible, setDescriptionVisible] = useState<boolean>(false);
-
-        return (
-            <div className={'ghost'} onBlur={() => setDescriptionVisible(false)}>
-                <input type={'checkbox'} id={`ghost-${id}`}/>
-                <label htmlFor={`ghost-${id}`}>{name}</label>
-
-                {description && (
-                    <InfoIcon
-                        onClick={() => setDescriptionVisible(prev => !prev)}
-                        className={'info-icon'}
-                    />
-                )}
-
-                <div className={'ghost-description'}>
-                    {description && descriptionVisible && (
-                        <Alert
-                            severity={"info"}
-                            className={descriptionVisible && 'fade'}
-                            onClose={() => setDescriptionVisible(false)}
-                            sx={{ fontSize: '1.125em', userSelect: 'none' }}
-                        >
-                            {description}
-                        </Alert>
-                    )}
-                </div>
-            </div>
-        );
-    }
-
-    const [result, setResult] = useState<string | undefined>(undefined);
+    type Information = { type: 'GHOST' | 'EVIDENCE', content: any, extra: { name?: string } };
+    const [information, setInformation] = useState<Information | undefined>(undefined);
+    const [evidenceSelected, setEvidenceSelected] = useState<Evidence[]>([]);
+    const [possibilities, setPossibilities] = useState<string[]>([]);
+    const [result, setResult] = useState<string | undefined>();
 
     // Currently, this effect is not needed but is there to prevent warnings (As CI's tend to error out because of them).
     useEffect(() => {
         setResult(undefined);
-    }, [ ]);
+    }, []);
 
+    useEffect(() => {
+        // Check if selected evidence is enough to determine the ghost.
+        const ghost = GHOSTS.find(ghost => ghost.evidence.every(e => evidenceSelected.includes(e)))
+
+        if (ghost) {
+            setResult(ghost.name);
+        } else {
+            setResult(undefined);
+        }
+    }, [evidenceSelected]);
+
+    // @ts-ignore
     return (
-        <main className={'card'}>
+        <main>
             <h1>Phasmophobia Ghost Identifier</h1>
 
-            <section aria-label={'Evidence'}>
-                <h2>Evidence</h2>
-                {/*<hr />*/}
+            <div className={'card-container'}>
+                <div className={'card card-main'}>
+                    <section aria-label={'Evidence'}>
+                        <h1>Evidence</h1>
+                        {/*<hr />*/}
 
-                <div className={'list'}>
-                    {EVIDENCE.map(e => (
-                        <Evidence name={nameOf(e)}/>
-                    ))}
+                        <div className={'list'}>
+                            {EVIDENCE.map(e => (
+                                <Evidence name={nameOf(e)} onClick={() => {
+                                    if (evidenceSelected.includes(e)) {
+                                        setEvidenceSelected(evidenceSelected.filter(e2 => e2 !== e));
+                                    } else {
+                                        setEvidenceSelected([...evidenceSelected, e]);
+                                    }
+                                }}/>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section aria-label={'Ghosts'}>
+                        <h1>Ghosts</h1>
+                        {/*<hr />*/}
+
+                        <div className={'list'}>
+                            {GHOSTS.map((g, i) => (
+                                <div className={'ghost'}>
+                                    <input type={'checkbox'} id={`ghost-${i}`}/>
+                                    <label htmlFor={`ghost-${i}`}>{g.name}</label>
+
+                                    {g.description && (
+                                        <InfoIcon className={'info-icon'} onClick={() => {
+                                            setInformation({
+                                                type: 'GHOST',
+                                                content: g.description,
+                                                extra: {
+                                                    name: g.name
+                                                }
+                                            });
+                                        }}/>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section aria-label={'Conclusion'}>
+                        <h1>Conclusion</h1>
+
+                        <span className={'result'}>
+                        <h2>{result || 'Not Yet Discovered'}</h2>
+                    </span>
+                    </section>
                 </div>
-            </section>
 
-            <section aria-label={'Ghosts'}>
-                <h2>Ghosts</h2>
-                {/*<hr />*/}
+                <div id={'card-aside'} className={`card card-aside ${information && 'show'}`}>
+                    <Close className={'close'} onClick={() => setInformation(undefined)}/>
 
-                <div className={'list'}>
-                    {GHOSTS.map((g, i) => (
-                        <Ghost {...g} />
-                    ))}
+                    {information &&
+                        <>
+                            <h1>Information: {information.extra.name}</h1>
+
+                            <div>
+                                {typeof information.content == "string" ? information.content : (
+                                    <>
+                                        <section className={'ghost-strengths'}>
+                                            <h3>Strengths</h3>
+
+                                            {information && (typeof information.content.strengths == "string" ? (
+                                                <p>{information.content.strengths}</p>
+                                            ) : (
+                                                information.content.strengths.map((s: string) => (
+                                                    <span>{s}</span>
+                                                ))
+                                            ))}
+                                        </section>
+
+                                        <section className={'ghost-weaknesses'}>
+                                            <h3>Weaknesses</h3>
+
+                                            {information && (typeof information.content.weaknesses == "string" ? (
+                                                <p>{information.content.weaknesses}</p>
+                                            ) : (
+                                                information.content.weaknesses.map((w: string) => (
+                                                    <span>{w}</span>
+                                                ))
+                                            ))}
+                                        </section>
+                                    </>
+                                )}
+                            </div>
+
+                            <div>
+                                <h2>Evidence</h2>
+
+                                {GHOSTS.find(g => g.name === information.extra.name)?.evidence && (
+                                    <>
+                                        { GHOSTS.find(g => g.name === information.extra.name)?.evidence.map((e: number) => (
+                                            <p>{nameOf(e)}</p>
+                                        ))}
+                                    </>
+                                )}
+                            </div>
+                        </>
+                    }
                 </div>
-            </section>
-
-            <section aria-label={'Conclusion'}>
-                <h2>Conclusion</h2>
-
-                <span className={'result'}>
-                    <h3>{result || 'Not Yet Discovered'}</h3>
-                </span>
-            </section>
+            </div>
         </main>
     );
 }
