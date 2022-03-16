@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/static/css/main.5f733c6f.css",
+    "main.js": "/static/js/main.8641a804.js",
+    "static/media/lazy_dog.ttf": "/static/media/lazy_dog.77379495118111536935.ttf",
+    "index.html": "/index.html",
+    "main.5f733c6f.css.map": "/static/css/main.5f733c6f.css.map",
+    "main.8641a804.js.map": "/static/js/main.8641a804.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.5f733c6f.css",
+    "static/js/main.8641a804.js"
+  ]
+}
