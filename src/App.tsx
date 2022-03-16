@@ -130,6 +130,11 @@ function App() {
 
     const [result, setResult] = useState<string | undefined>(undefined);
 
+    // Currently, this effect is not needed but is there to prevent warnings (As CI's tend to error out because of them).
+    useEffect(() => {
+        setResult(undefined);
+    }, [ ]);
+
     return (
         <main className={'card'}>
             <h1>Phasmophobia Ghost Identifier</h1>
