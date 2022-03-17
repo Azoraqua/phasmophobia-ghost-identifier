@@ -1,4 +1,4 @@
-import React, {FC, useEffect, useState} from 'react';
+import React, {FC, FormEvent, useEffect, useState} from 'react';
 import './App.scss';
 
 import {Evidence, GhostDescription, nameOf} from "./ghosts/Ghost.d";
@@ -26,6 +26,7 @@ import Yurei from "./ghosts/Yurei";
 import {useIdGenerator} from "./util/helper";
 import {Alert} from "@mui/material";
 import {Close, Info as InfoIcon} from "@mui/icons-material";
+import $ from 'jquery';
 
 const GHOSTS = [
     Banshee,
@@ -64,8 +65,7 @@ const EVIDENCE: Evidence[] = [
 function App() {
     const IdGenerator = useIdGenerator();
 
-    const Evidence: FC<any> = ({name, description}) => {
-        const id = IdGenerator.next().value;
+    const Evidence: FC<any> = ({id, name, description}) => {
         const [descriptionVisible, setDescriptionVisible] = useState<boolean>(false);
 
         return (
@@ -105,7 +105,17 @@ function App() {
     // Currently, this effect is not needed but is there to prevent warnings (As CI's tend to error out because of them).
     useEffect(() => {
         setResult(undefined);
+        $('input[type="text"]').focus();
     }, []);
+
+    setInterval(() => {
+        const search = $('input[type="text"]')
+
+        // if search is not focused, focus it
+        if (!search.is(':focus')) {
+            search.focus();
+        }
+    }, 100);
 
     useEffect(() => {
         // Check if selected evidence is enough to determine the ghost.
@@ -118,11 +128,44 @@ function App() {
         }
     }, [evidenceSelected]);
 
+    function handleSearchChange(e: FormEvent<HTMLInputElement>) {
+        const text = e.currentTarget.value;
+
+        if (!text || text.length === 0) {
+            setPossibilities([]);
+            return;
+        }
+
+        // Get element of evidence associated with the input text.
+        const possibilities = EVIDENCE.filter(e => nameOf(e).toLowerCase().includes(text.toLowerCase()));
+
+        // Narrow down possibilities based on the selected evidence.
+        const filteredPossibilities = possibilities.filter(e => !evidenceSelected.includes(e));
+
+        // Narrow down to 1
+        // if (filteredPossibilities.length > 1) {
+        //     filteredPossibilities.splice(1);
+        // }
+
+        // remove focus class from all elements
+        $('label').removeClass('focus');
+
+        // focus label associated with evidence
+        filteredPossibilities.forEach(e => {
+            const label = $(`label[for="evidence-${e}"]`);
+
+            console.log(label.text());
+            // label.focus();
+            label.addClass('focus')
+            // label.focus();
+        });
+    }
+
     // @ts-ignore
     return (
         <>
             <main>
-                <h1 style={{ textTransform: 'capitalize'}}>{process.env.REACT_APP_NAME?.replaceAll('-', ' ')}</h1>
+                <h1 style={{textTransform: 'capitalize'}}>{process.env.REACT_APP_NAME?.replaceAll('-', ' ')}</h1>
 
                 <div className={'card-container'}>
                     <div className={'card card-main'}>
@@ -132,7 +175,7 @@ function App() {
 
                             <div className={'list'}>
                                 {EVIDENCE.map(e => (
-                                    <Evidence name={nameOf(e)} onClick={() => {
+                                    <Evidence id={e} name={nameOf(e)} onClick={() => {
                                         if (evidenceSelected.includes(e)) {
                                             setEvidenceSelected(evidenceSelected.filter(e2 => e2 !== e));
                                         } else {
@@ -173,9 +216,11 @@ function App() {
                             <h1>Conclusion</h1>
 
                             <span className={'result'}>
-                        <h2>{result || 'Not Yet Discovered'}</h2>
-                    </span>
+                                <h2>{result || 'Not Yet Discovered'}</h2>
+                            </span>
                         </section>
+
+                        <input type={'text'} onKeyUp={handleSearchChange} />
                     </div>
 
                     <div id={'card-aside'} className={`card card-aside ${information && 'show'}`}>
@@ -220,7 +265,7 @@ function App() {
 
                                     {GHOSTS.find(g => g.name === information.extra.name)?.evidence && (
                                         <>
-                                            { GHOSTS.find(g => g.name === information.extra.name)?.evidence.map((e: number) => (
+                                            {GHOSTS.find(g => g.name === information.extra.name)?.evidence.map((e: number) => (
                                                 <p>{nameOf(e)}</p>
                                             ))}
                                         </>

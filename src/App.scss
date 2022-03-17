@@ -64,9 +64,20 @@ main {
       font-size: 1.1em;
     }
 
-    input {
+    input[type='checkbox'] {
       position: absolute;
       left: -9999px;
+    }
+
+    input[type='text'] {
+      width: 100%;
+      border: 1px solid #333;
+      border-radius: .5em;
+      padding: .5em;
+      font-size: 1.1em;
+      text-align: center;
+      margin-top: 1em;
+      opacity: 0;
     }
 
     label {
@@ -165,4 +176,8 @@ footer {
     bottom: 5px;
     right: 5px;
   }
+}
+
+.focus {
+  outline: 2px solid #333;
 }
