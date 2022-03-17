@@ -128,6 +128,14 @@ function App() {
         }
     }, [evidenceSelected]);
 
+    $(document).on('keydown', (e) => {
+       if (e.code === 'Escape') {
+           setPossibilities([]);
+           $('input[type="text"]').text('');
+           $('label').removeClass('focus');
+       }
+    });
+
     function handleSearchChange(e: FormEvent<HTMLInputElement>) {
         const text = e.currentTarget.value;
 
