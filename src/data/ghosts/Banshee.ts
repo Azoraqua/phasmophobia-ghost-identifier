@@ -1,4 +1,5 @@
-import {Evidence, Ghost} from "./Ghost.d";
+import {Ghost} from "./Ghost";
+import { DotsProjector, GhostOrb, Fingerprints } from "../evidence";
 
 export default {
     name: 'Banshee',
@@ -7,8 +8,8 @@ export default {
         weaknesses: 'Less aggressive when near a crucifix.',
     },
     evidence: [
-        Evidence.DOTS_PROJECTOR,
-        Evidence.GHOST_ORB,
-        Evidence.FINGERPRINTS
+        DotsProjector,
+        GhostOrb,
+        Fingerprints,
     ]
 } as Ghost;

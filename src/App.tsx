@@ -1,32 +1,41 @@
 import React, {FC, FormEvent, useEffect, useState} from 'react';
 import './App.scss';
 
-import {Evidence, GhostDescription, nameOf} from "./ghosts/Ghost.d";
-import Spirit from "./ghosts/Spirit";
-import Banshee from "./ghosts/Banshee";
-import Demon from "./ghosts/Demon";
-import Goryo from "./ghosts/Goryo";
-import Hantu from "./ghosts/Hantu";
-import Jinn from "./ghosts/Jinn";
-import Mare from "./ghosts/Mare";
-import Myling from "./ghosts/Myling";
-import Obake from "./ghosts/Obake";
-import Oni from "./ghosts/Oni";
-import Onryo from "./ghosts/Onryo";
-import Phantom from "./ghosts/Phantom";
-import Poltergeist from "./ghosts/Poltergeist";
-import Raiju from "./ghosts/Raiju";
-import Revenant from "./ghosts/Revenant";
-import Shade from "./ghosts/Shade";
-import Mimic from "./ghosts/Mimic";
-import Twins from "./ghosts/Twins";
-import Wraith from "./ghosts/Wraith";
-import Yokai from "./ghosts/Yokai";
-import Yurei from "./ghosts/Yurei";
-import {useIdGenerator} from "./util/helper";
-import {Alert} from "@mui/material";
+import {
+    Banshee,
+    Demon,
+    Goryo,
+    Hantu,
+    Jinn,
+    Mare,
+    Myling,
+    Obake,
+    Oni,
+    Onryo,
+    Phantom,
+    Poltergeist,
+    Raiju,
+    Revenant,
+    Shade,
+    Spirit,
+    Mimic,
+    Twins,
+    Wraith,
+    Yokai,
+    Yurei,
+} from "./data/ghosts";
 import {Close, Info as InfoIcon} from "@mui/icons-material";
 import $ from 'jquery';
+import {
+    DotsProjector,
+    EMF5,
+    Fingerprints,
+    FreezingTemperatures,
+    GhostOrb,
+    GhostWriting,
+    SpiritBox
+} from "./data/evidence";
+import {Evidence} from "./data/evidence";
 
 const GHOSTS = [
     Banshee,
@@ -52,51 +61,18 @@ const GHOSTS = [
     Yurei
 ];
 
-const EVIDENCE: Evidence[] = [
-    Evidence.EMF_LEVEL_5,
-    Evidence.GHOST_ORB,
-    Evidence.GHOST_WRITING,
-    Evidence.SPIRIT_BOX,
-    Evidence.FINGERPRINTS,
-    Evidence.FREEZING_TEMPERATURES,
-    Evidence.DOTS_PROJECTOR
+const EVIDENCE = [
+    EMF5,
+    GhostOrb,
+    GhostWriting,
+    SpiritBox,
+    Fingerprints,
+    FreezingTemperatures,
+    DotsProjector,
 ];
 
 function App() {
-    const IdGenerator = useIdGenerator();
-
-    const Evidence: FC<any> = ({id, name, description}) => {
-        const [descriptionVisible, setDescriptionVisible] = useState<boolean>(false);
-
-        return (
-            <div className={'evidence'} onBlur={() => setDescriptionVisible(false)}>
-                <input type={'checkbox'} id={`evidence-${id}`}/>
-                <label htmlFor={`evidence-${id}`}>{name}</label>
-
-                {description && (
-                    <InfoIcon
-                        onClick={() => setDescriptionVisible(prev => !prev)}
-                        className={'info-icon'}
-                    />
-                )}
-
-                <div className={'ghost-description'}>
-                    {description && descriptionVisible && (
-                        <Alert
-                            severity={"info"}
-                            className={descriptionVisible && 'fade'}
-                            onClose={() => setDescriptionVisible(false)}
-                            sx={{fontSize: '1.125em', userSelect: 'none'}}
-                        >
-                            {description}
-                        </Alert>
-                    )}
-                </div>
-            </div>
-        );
-    }
-
-    type Information = { type: 'GHOST' | 'EVIDENCE', content: any, extra: { name?: string } };
+    type Information = { type: 'GHOST' | 'EVIDENCE', content: any, extra?: { name?: string } };
     const [information, setInformation] = useState<Information | undefined>(undefined);
     const [evidenceSelected, setEvidenceSelected] = useState<Evidence[]>([]);
     const [possibilities, setPossibilities] = useState<string[]>([]);
@@ -128,47 +104,6 @@ function App() {
         }
     }, [evidenceSelected]);
 
-    $(document).on('keydown', (e) => {
-       if (e.code === 'Escape') {
-           setPossibilities([]);
-           $('input[type="text"]').text('');
-           $('label').removeClass('focus');
-       }
-    });
-
-    function handleSearchChange(e: FormEvent<HTMLInputElement>) {
-        const text = e.currentTarget.value;
-
-        if (!text || text.length === 0) {
-            setPossibilities([]);
-            return;
-        }
-
-        // Get element of evidence associated with the input text.
-        const possibilities = EVIDENCE.filter(e => nameOf(e).toLowerCase().includes(text.toLowerCase()));
-
-        // Narrow down possibilities based on the selected evidence.
-        const filteredPossibilities = possibilities.filter(e => !evidenceSelected.includes(e));
-
-        // Narrow down to 1
-        // if (filteredPossibilities.length > 1) {
-        //     filteredPossibilities.splice(1);
-        // }
-
-        // remove focus class from all elements
-        $('label').removeClass('focus');
-
-        // focus label associated with evidence
-        filteredPossibilities.forEach(e => {
-            const label = $(`label[for="evidence-${e}"]`);
-
-            console.log(label.text());
-            // label.focus();
-            label.addClass('focus')
-            // label.focus();
-        });
-    }
-
     // @ts-ignore
     return (
         <>
@@ -183,13 +118,22 @@ function App() {
 
                             <div className={'list'}>
                                 {EVIDENCE.map(e => (
-                                    <Evidence id={e} name={nameOf(e)} onClick={() => {
-                                        if (evidenceSelected.includes(e)) {
-                                            setEvidenceSelected(evidenceSelected.filter(e2 => e2 !== e));
-                                        } else {
-                                            setEvidenceSelected([...evidenceSelected, e]);
-                                        }
-                                    }}/>
+                                    <div className={'evidence'} key={e.name}>
+                                        <input type={'checkbox'} id={`evidence-${e.name.replaceAll(' ', '-')}`}/>
+                                        <label htmlFor={`ghost-${e.name.replaceAll(' ', '-')}`}>{e.name}</label>
+
+                                        {e.description && (
+                                            <InfoIcon className={'info-icon'} onClick={() => {
+                                                setInformation({
+                                                    type: 'EVIDENCE',
+                                                    content: e.description,
+                                                    extra: {
+                                                        name: e.name
+                                                    }
+                                                });
+                                            }}/>
+                                        )}
+                                    </div>
                                 ))}
                             </div>
                         </section>
@@ -200,9 +144,9 @@ function App() {
 
                             <div className={'list'}>
                                 {GHOSTS.map((g, i) => (
-                                    <div className={'ghost'}>
-                                        <input type={'checkbox'} id={`ghost-${i}`}/>
-                                        <label htmlFor={`ghost-${i}`}>{g.name}</label>
+                                    <div className={'ghost'} key={g.name}>
+                                        <input type={'checkbox'} id={`ghost-${g.name.toLowerCase()}`}/>
+                                        <label htmlFor={`ghost-${g.name.toLowerCase()}`}>{g.name}</label>
 
                                         {g.description && (
                                             <InfoIcon className={'info-icon'} onClick={() => {
@@ -227,60 +171,53 @@ function App() {
                                 <h2>{result || 'Not Yet Discovered'}</h2>
                             </span>
                         </section>
-
-                        <input type={'text'} onKeyUp={handleSearchChange} />
                     </div>
 
                     <div id={'card-aside'} className={`card card-aside ${information && 'show'}`}>
-                        {information &&
-                            <>
-                                <Close className={'close'} onClick={() => setInformation(undefined)}/>
+                        <>
+                            <Close className={'close'} onClick={() => setInformation(undefined)}/>
 
-                                <h1>Information: {information.extra.name}</h1>
+                            <h1>Information: {information?.extra?.name}</h1>
 
-                                <div>
-                                    {typeof information.content == "string" ? information.content : (
-                                        <>
-                                            <section className={'ghost-strengths'}>
-                                                <h3>Strengths</h3>
+                            <div>
+                                {typeof information?.content == "string" ? information.content : (
+                                    <>
+                                        <section className={'ghost-strengths'}>
+                                            <h3>Strengths</h3>
 
-                                                {information && (typeof information.content.strengths == "string" ? (
-                                                    <p>{information.content.strengths}</p>
-                                                ) : (
-                                                    information.content.strengths.map((s: string) => (
-                                                        <span>{s}</span>
-                                                    ))
-                                                ))}
-                                            </section>
+                                            {information && (typeof information.content.strengths == "string" ? (
+                                                <p>{information.content.strengths}</p>
+                                            ) : (
+                                                information.content.strengths.map((s: string) => (
+                                                    <span key={s}>{s}</span>
+                                                ))
+                                            )) || 'None'}
+                                        </section>
 
-                                            <section className={'ghost-weaknesses'}>
-                                                <h3>Weaknesses</h3>
+                                        <section className={'ghost-weaknesses'}>
+                                            <h3>Weaknesses</h3>
 
-                                                {information && (typeof information.content.weaknesses == "string" ? (
-                                                    <p>{information.content.weaknesses}</p>
-                                                ) : (
-                                                    information.content.weaknesses.map((w: string) => (
-                                                        <span>{w}</span>
-                                                    ))
-                                                ))}
-                                            </section>
-                                        </>
-                                    )}
-                                </div>
 
-                                <div>
-                                    <h2>Evidence</h2>
+                                            {information && (typeof information.content.weaknesses == "string" ? (
+                                                <p>{information.content.weaknesses}</p>
+                                            ) : (
+                                                information.content.weaknesses.map((w: string) => (
+                                                    <span key={w}>{w}</span>
+                                                ))
+                                            )) || 'None'}
+                                        </section>
+                                    </>
+                                )}
+                            </div>
 
-                                    {GHOSTS.find(g => g.name === information.extra.name)?.evidence && (
-                                        <>
-                                            {GHOSTS.find(g => g.name === information.extra.name)?.evidence.map((e: number) => (
-                                                <p>{nameOf(e)}</p>
-                                            ))}
-                                        </>
-                                    )}
-                                </div>
-                            </>
-                        }
+                            <div>
+                                <h2>Evidence</h2>
+
+                                {GHOSTS.find(g => g.name === information?.extra?.name)?.evidence?.map(e => (
+                                    <p key={e.name}>{e.name}</p>
+                                ))}
+                            </div>
+                        </>
                     </div>
                 </div>
             </main>
